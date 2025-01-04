@@ -10,11 +10,10 @@ app.use(cors());
 const server = http.createServer(app);
 app.use(express.static(path.resolve('./public')));
 
-// connection();
 
 //creating server for socket
 
-// const io = new Server(server);
+//cors
 const io = new Server(server,{
     cors:{
       origin: '*',
@@ -47,17 +46,39 @@ io.on("connection",(socket)=>{
 
         try { 
             const newChat = {
-             message: message,
-            //  senderId: message.senderId, 
-             // Adjust field name based on your message structure
-              timestamp: new Date() 
+             message: message.msgdata,
+             sender: message.sender,
+             receiver:message.receiver, 
+            timestamp: new Date().toLocaleTimeString(),
+            Date: new Date().toDateString()   
             }; 
             const chatCollection = db.collection("chatCollection"); 
             await chatCollection.insertOne(newChat); 
             console.log("Message saved to database");
-         } catch (error) { 
+
+            //experiment  
+            let dat2323=[]
+            socket.emit("newmsgupdate",dat2323);
+           
+         } catch (error) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
             console.error("Error saving message to database", error);
          }
+    })
+
+    socket.on("getData",async(data)=>{
+
+      const collection = db.collection("chatCollection"); 
+      // Fetch all documents from the collection 
+      const documents = await collection.find({}).toArray(); 
+
+      //Convert documents to JSON 
+      const jsonData = JSON.stringify(documents, null, 4);
+
+      // Print JSON data 
+      // console.log(data.receiver);
+
+      socket.emit("sendChat",jsonData);
+
     })
     
 });
